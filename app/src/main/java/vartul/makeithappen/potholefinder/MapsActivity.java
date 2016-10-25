@@ -70,7 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         switch (requestCode) {
             case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mMap.setMyLocationEnabled(true);
+                    //mMap.setMyLocationEnabled(true);
                 }
         }
     }
