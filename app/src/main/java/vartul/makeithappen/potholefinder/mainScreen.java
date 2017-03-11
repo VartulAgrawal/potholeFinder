@@ -3,6 +3,7 @@ package vartul.makeithappen.potholefinder;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -10,14 +11,11 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.audiofx.BassBoost;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringDef;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -25,25 +23,51 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.text.DecimalFormat;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.github.mikephil.charting.utils.ColorTemplate;
 
-public class mainScreen extends AppCompatActivity implements SensorEventListener {
+import java.lang.reflect.Array;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+
+import static android.R.attr.data;
+
+public class MainScreen extends AppCompatActivity implements SensorEventListener, OnChartValueSelectedListener {
 
     // gps variables
     private Button locationButton;
     private TextView viewLocation;
     private LocationManager locationManager;
     private LocationListener locationListener;
+    private double latitude;
+    private double longitude;
 
     // sensor variables
     private SensorManager sensorManager;
     private Sensor accelerometer;
-    private TextView accVector;
     private boolean initialized;
-    private float lastX, lastY, lastZ;
-    private static final float NOISE = (float) 0.2;
+    private double lastX, lastY, lastZ;
+    private static final double NOISE =  0.2;
+
+    // graph variables
+    private LineChart mChart;
+    private LineDataSet setX;
+    private LineDataSet setY;
+    private LineDataSet setZ;
+    private float count;
+    private long currentTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +84,14 @@ public class mainScreen extends AppCompatActivity implements SensorEventListener
             }
         });
 
+        FloatingActionButton cameraButton = (FloatingActionButton) findViewById(R.id.cameraButtonMainScreen);
+        cameraButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToCamera();
+            }
+        });
+
         locationButton = (Button) findViewById(R.id.button);
         viewLocation = (TextView) findViewById(R.id.textView);
 
@@ -67,7 +99,10 @@ public class mainScreen extends AppCompatActivity implements SensorEventListener
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                viewLocation.setText("\nLatitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude());
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+                viewLocation.setText("\nLatitude: " + latitude + "\nLongitude: " + longitude);
+                configureButton();
             }
 
             @Override
@@ -92,14 +127,62 @@ public class mainScreen extends AppCompatActivity implements SensorEventListener
         initialized = false;
 
         // accelerometer sensor data
-        accVector = (TextView) findViewById(R.id.textViewAccVector);
-
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        count = 0;
+        currentTime = System.currentTimeMillis();
+        mChart = (LineChart) findViewById(R.id.lineChart);
+        initializeGraph();
+    }
+
+    private void initializeGraph() {
+        mChart.setOnChartValueSelectedListener(this);
+        mChart.getDescription().setEnabled(false);
+        mChart.setNoDataText("No data!!");
+
+        mChart.setTouchEnabled(true);
+
+        mChart.setDragEnabled(true);
+        mChart.setScaleEnabled(true);
+        mChart.setDrawGridBackground(false);
+
+        // enable pinch zoom to avoid scaling x and y axis separately
+        mChart.setPinchZoom(true);
+
+        mChart.setBackgroundColor(Color.BLACK);
+        setX = createSet(Color.BLUE, "Acceleration Dir X");
+        setY = createSet(Color.RED, "Acceleration Dir Y");
+        setZ = createSet(Color.YELLOW, "Acceleration Dir Z");
+
+        Legend legend = mChart.getLegend();
+        legend.setForm(Legend.LegendForm.LINE);
+        legend.setTextColor(Color.WHITE);
+
+        XAxis xAxis = mChart.getXAxis();
+        xAxis.setTextColor(Color.BLUE);
+        xAxis.setDrawGridLines(false);
+        xAxis.setAvoidFirstLastClipping(true);
+
+        YAxis leftAxis = mChart.getAxisLeft();
+        leftAxis.setTextColor(Color.BLUE);
+        leftAxis.setAxisMaximum(40f);
+        leftAxis.setAxisMinimum(-40f);
+        leftAxis.setDrawGridLines(true);
+
+        YAxis rightAxis = mChart.getAxisRight();
+        rightAxis.setEnabled(false);
+    }
+
+    private void goToCamera() {
+        Intent cameraIntent = new Intent(getApplicationContext(), CameraActivity.class);
+        startActivity(cameraIntent);
     }
 
     private void goToMapScreen() {
         Intent mapIntent = new Intent(getApplicationContext(), MapsActivity.class);
+        mapIntent.putExtra("Latitude", latitude);
+        mapIntent.putExtra("Longitude", longitude);
         startActivity(mapIntent);
     }
 
@@ -120,7 +203,8 @@ public class mainScreen extends AppCompatActivity implements SensorEventListener
                         Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
             }
         } else {
-            configureButton();
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            //configureButton();
         }
     }
 
@@ -129,7 +213,8 @@ public class mainScreen extends AppCompatActivity implements SensorEventListener
         switch (requestCode) {
             case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    configureButton();
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                    //configureButton();
                 }
         }
     }
@@ -138,7 +223,8 @@ public class mainScreen extends AppCompatActivity implements SensorEventListener
         locationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                goToMapScreen();
             }
         });
     }
@@ -169,6 +255,9 @@ public class mainScreen extends AppCompatActivity implements SensorEventListener
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
+            long lastTime = currentTime;
+            currentTime = System.currentTimeMillis();
+
             DecimalFormat vectorFormat = new DecimalFormat();
             vectorFormat.setMaximumFractionDigits(1);
 
@@ -176,35 +265,94 @@ public class mainScreen extends AppCompatActivity implements SensorEventListener
             float y = event.values[1];
             float z = event.values[2];
 
+            /*addEntry(count, x, y, z);
+            count+=0.1;*/
+
             if (!initialized) {
                 lastX = x;
                 lastY = y;
                 lastZ = z;
 
-                accVector.setText("0.0");
+                //accVector.setText("0.0");
                 initialized = true;
             } else {
-                float deltaX = lastX - x;
-                float deltaY = lastY - y;
-                float deltaZ = lastZ - z;
+                double deltaX = lastX - x;
+                double deltaY = lastY - y;
+                double deltaZ = lastZ - z;
 
-                if (deltaX < NOISE) deltaX = (float) 0.0;
-                if (deltaY < NOISE) deltaY = (float) 0.0;
-                if (deltaZ < NOISE) deltaZ = (float) 0.0;
+                if (deltaX < NOISE) deltaX = 0.0;
+                if (deltaY < NOISE) deltaY = 0.0;
+                if (deltaZ < NOISE) deltaZ = 0.0;
 
                 lastX = x;
                 lastY = y;
                 lastZ = z;
 
-                accVector.setText(vectorFormat.format(deltaX + deltaY + deltaZ));
+                addEntry(count, deltaX, deltaY, deltaZ);
+                count+=0.5;
+
+                //accVector.setText(vectorFormat.format(deltaX + deltaY + deltaZ));
             }
             //accVector.setText(vectorFormat.format(event.values[0] + event.values[1] + event.values[2]));
 
         }
     }
 
+    private void addEntry(float count, double x, double y, double z) {
+
+        ArrayList<ILineDataSet> lines = new ArrayList<>();
+
+        // setX.addEntry(...); // can be called as well
+
+        setX.addEntry(new Entry(count, (float) x));
+        lines.add(setX);
+        setY.addEntry(new Entry(count, (float) y));
+        lines.add(setY);
+        setZ.addEntry(new Entry(count, (float) z));
+        lines.add(setZ);
+
+        mChart.setData(new LineData(lines));
+
+        // let the chart know it's data has changed
+        mChart.notifyDataSetChanged();
+
+        // limit the number of visible entries
+        mChart.setVisibleXRangeMaximum(120);
+        // mChart.setVisibleYRange(30, AxisDependency.LEFT);
+
+        // move to the latest entry
+        mChart.moveViewToX(mChart.getData().getEntryCount());
+
+        // this automatically refreshes the chart (calls invalidate())
+        // mChart.moveViewTo(data.getXValCount()-7, 55f,
+        // AxisDependency.LEFT);
+    }
+
+    private LineDataSet createSet(int color, String description) {
+
+        LineDataSet set = new LineDataSet(null, description);
+        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        set.setDrawCircles(false);
+        set.setLineWidth(2f);
+        set.setColor(color);
+        set.setHighLightColor(color);
+        set.setDrawValues(false);
+        return set;
+    }
+
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    @Override
+    public void onValueSelected(Entry e, Highlight h) {
+
+    }
+
+    @Override
+    public void onNothingSelected() {
 
     }
 }

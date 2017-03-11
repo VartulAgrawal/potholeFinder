@@ -9,9 +9,9 @@ import android.view.ViewGroup;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class mainScreenFragment extends Fragment {
+public class MainScreenFragment extends Fragment {
 
-    public mainScreenFragment() {
+    public MainScreenFragment() {
     }
 
     @Override
