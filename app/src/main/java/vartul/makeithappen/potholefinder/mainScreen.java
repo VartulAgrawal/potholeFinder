@@ -1,6 +1,7 @@
 package vartul.makeithappen.potholefinder;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -13,15 +14,19 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Display;
+import android.view.Surface;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -38,9 +43,14 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static android.R.attr.data;
 
@@ -69,6 +79,8 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
     private float count;
     private long currentTime;
 
+    private ArrayList acceleration = new ArrayList();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,7 +100,11 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
         cameraButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                goToCamera();
+                try {
+                    goToCamera();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -174,9 +190,17 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
         rightAxis.setEnabled(false);
     }
 
-    private void goToCamera() {
+    private void goToCamera() throws IOException {
+        /////////
+        BufferedWriter outputWriter = null;
+        outputWriter = new BufferedWriter(new FileWriter(new File(Environment.getExternalStorageDirectory(), "/Acceleration1.txt")));
+        outputWriter.write(acceleration.toString());
+        outputWriter.flush();
+        outputWriter.close();
+
         Intent cameraIntent = new Intent(getApplicationContext(), CameraActivity.class);
         startActivity(cameraIntent);
+
     }
 
     private void goToMapScreen() {
@@ -265,6 +289,8 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
             float y = event.values[1];
             float z = event.values[2];
 
+            acceleration.add(Arrays.asList(x, y, z));
+
             /*addEntry(count, x, y, z);
             count+=0.1;*/
 
@@ -272,7 +298,6 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
                 lastX = x;
                 lastY = y;
                 lastZ = z;
-
                 //accVector.setText("0.0");
                 initialized = true;
             } else {

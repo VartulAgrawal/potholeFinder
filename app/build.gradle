@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.3"
+    buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "vartul.makeithappen.potholefinder"
         minSdkVersion 19
@@ -45,6 +45,6 @@ dependencies {
     compile 'org.nd4j:nd4j-native:0.7.2'
     compile 'org.nd4j:nd4j-native:0.7.2:android-x86'
     compile 'org.nd4j:nd4j-native:0.7.2:android-arm'
-    compile project(':MPChartLib')
+    compile 'com.github.PhilJay:MPAndroidChart:v3.0.1'
     testCompile 'junit:junit:4.12'
 }

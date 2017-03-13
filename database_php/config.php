@@ -6,9 +6,10 @@
  * Time: 19:37
  */
 
-    define('hostname', '10.186.0.4');
-    define('dbName', 'pothole_finder');
-    define('username', 'vartul');
-    define('password', 'manchester22');
+    define('hostname', 'sql8.freemysqlhosting.net');
+    define('dbName', 'sql8163343');
+    define('username', 'sql8163343');
+    define('password', 'Jg4DwCX8FD');
+    define('port', '3306');
 
  ?>
