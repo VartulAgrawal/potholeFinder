@@ -38,6 +38,8 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    compile 'org.nd4j:nd4j-native:0.7.2:android-x86'
+    compile 'org.nd4j:nd4j-native:0.7.2:android-arm'
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:design:24.2.1'
     compile 'com.google.android.gms:play-services:9.8.0'
@@ -45,8 +47,6 @@ dependencies {
     compile 'com.android.volley:volley:1.0.0'
     compile 'org.deeplearning4j:deeplearning4j-core:0.7.2'
     compile 'org.nd4j:nd4j-native:0.7.2'
-    compile 'org.nd4j:nd4j-native:0.7.2:android-x86'
-    compile 'org.nd4j:nd4j-native:0.7.2:android-arm'
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.1'
     testCompile 'junit:junit:4.8.2'
 }

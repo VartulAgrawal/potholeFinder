@@ -11,6 +11,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -25,6 +26,13 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -36,9 +44,14 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainScreen extends AppCompatActivity implements SensorEventListener, OnChartValueSelectedListener {
 
@@ -64,6 +77,13 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
     private LineDataSet setZ;
     private float count;
     private long currentTime;
+
+    // database
+    private static final String URL= "http://potholefinder.5gbfree.com/potholes.php";
+    private RequestQueue requestQueue;
+    private StringRequest request;
+
+    private PotholeEntryTask mPotholeTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,14 +156,27 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
         mChart = (LineChart) findViewById(R.id.lineChart);
         initializeGraph();
 
-        Button changeToMachineLearning = (Button) findViewById(R.id.zThreshold);
+        Button changeToMachineLearning = (Button) findViewById(R.id.machineLearning);
         changeToMachineLearning.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent machineLearning = new Intent(getApplicationContext(), MachineLearningActivity.class);
+                machineLearning.putExtra("email", getIntent().getStringExtra("email"));
                 startActivity(machineLearning);
             }
         });
+
+        Button potholesReported = (Button) findViewById(R.id.potholesReported);
+        potholesReported.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent viewPotholes = new Intent(getApplicationContext(), UserPotholesActivity.class);
+                viewPotholes.putExtra("email", getIntent().getStringExtra("email"));
+                startActivity(viewPotholes);
+            }
+        });
+
+        requestQueue = Volley.newRequestQueue(this);
     }
 
     private void initializeGraph() {
@@ -234,6 +267,7 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
             @Override
             public void onClick(View v) {
                 //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
                 goToMapScreen();
             }
         });
@@ -294,7 +328,9 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
                 if (deltaZ < NOISE) deltaZ = 0.0;
 
                 // Detect pothole based on Z threshold
-                if (deltaZ > 12.5) {
+                if (deltaZ > 11) {
+                    mPotholeTask = new PotholeEntryTask(getIntent().getStringExtra("email"), x, y, z, (float)latitude, (float)longitude);
+                    mPotholeTask.execute((Void) null);
                     goToMapScreen();
                 }
 
@@ -309,6 +345,84 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
             }
             //accVector.setText(vectorFormat.format(event.values[0] + event.values[1] + event.values[2]));
 
+        }
+    }
+
+    private boolean success = true;
+
+    /**
+     * Represents an asynchronous pothole location upload task
+     */
+    public class PotholeEntryTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final String mEmail;
+        private final Float mAccX;
+        private final Float mAccY;
+        private final Float mAccZ;
+        private final Float mLatitude;
+        private final Float mLongitude;
+
+
+        PotholeEntryTask(String email, Float accX, Float accY, Float accZ, Float latitude, Float longitude) {
+            mEmail = email;
+            mAccX = accX;
+            mAccY = accY;
+            mAccZ = accZ;
+            mLatitude = latitude;
+            mLongitude = longitude;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            request = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        success = jsonObject.names().get(0).equals("success");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, new Response.ErrorListener() {
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            }){
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    HashMap<String, String> hashMap = new HashMap<>();
+                    hashMap.put("email", mEmail);
+                    hashMap.put("aacX", mAccX.toString());
+                    hashMap.put("accY", mAccY.toString());
+                    hashMap.put("accZ", mAccZ.toString());
+                    hashMap.put("latitude", mLatitude.toString());
+                    hashMap.put("longitude", mLongitude.toString());
+
+                    return hashMap;
+                }
+            };
+
+            requestQueue.add(request);
+
+            return success;
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            mPotholeTask = null;
+
+            if (success) {
+                finish();
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            mPotholeTask = null;
         }
     }
 

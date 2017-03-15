@@ -61,8 +61,8 @@ public class NeuralNetwork extends Activity {
                 .build();
 
         NeuralNetConfiguration.Builder nncBuilder = new NeuralNetConfiguration.Builder();
-        nncBuilder.iterations(100);
-        nncBuilder.learningRate(0.000001);
+        nncBuilder.iterations(1000);
+        nncBuilder.learningRate(0.0000001);
         nncBuilder.activation(Activation.SIGMOID);
 
         NeuralNetConfiguration.ListBuilder listBuilder = nncBuilder.list();

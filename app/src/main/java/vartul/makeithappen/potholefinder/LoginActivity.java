@@ -59,7 +59,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private static final int REQUEST_READ_CONTACTS = 0;
 
-    // TODO: update the URL with the location where the script is hosted (Update IP accordingly)
+    // update the URL with the location where the script is hosted (Update IP accordingly)
     private static final String URL= "http://potholefinder.5gbfree.com/user.php";
     private RequestQueue requestQueue;
     private StringRequest request;
@@ -365,6 +365,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if (success) {
                 finish();
                 Intent mainScreenIntent = new Intent(getApplicationContext(), MainScreen.class);
+                mainScreenIntent.putExtra("email", mEmail);
                 startActivity(mainScreenIntent);
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

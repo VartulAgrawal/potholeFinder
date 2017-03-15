@@ -14,6 +14,16 @@
         <include layout="@layout/content_main_screen"
             android:id="@+id/include" />
 
+        <Button
+            android:text="View Potholes Reported By Me"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/potholesReported"
+            android:background="@color/cast_expanded_controller_seek_bar_progress_background_tint_color"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true" />
+
         <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -22,44 +32,16 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <com.github.mikephil.charting.charts.LineChart
-            android:layout_width="match_parent"
-            android:layout_height="251dp"
-            android:id="@+id/lineChart"
-            android:layout_above="@+id/cameraButtonMainScreen"
-            android:layout_alignParentStart="true" />
-
-        <android.support.design.widget.FloatingActionButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            app:fabSize="normal"
-            app:srcCompat="@android:drawable/ic_menu_camera"
-            android:id="@+id/cameraButtonMainScreen"
-            app:rippleColor="@android:color/white"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="24dp" />
-
         <Button
             android:text="Switch to Z Threshold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/zThreshold"
+            android:id="@+id/machineLearning"
             style="@style/Widget.AppCompat.Button"
             android:background="@color/cast_expanded_controller_ad_container_white_stripe_color"
             android:layout_below="@+id/toolbar"
             android:layout_alignParentEnd="true"
             android:layout_alignParentStart="true" />
-
-        <Button
-            android:text="Report Pothole"
-            android:layout_width="200dp"
-            android:layout_height="70dp"
-            android:background="@color/colorAccent"
-            android:id="@+id/button"
-            android:layout_below="@+id/zThreshold"
-            android:layout_centerHorizontal="true" />
 
         <TextView
             android:text="Coordinates"
@@ -70,7 +52,35 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/button"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="20dp" />
+            android:layout_marginTop="0dp" />
+
+        <com.github.mikephil.charting.charts.LineChart
+            android:layout_width="match_parent"
+            android:layout_height="251dp"
+            android:id="@+id/lineChart"
+            android:layout_below="@+id/textView"
+            android:layout_alignParentStart="true" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:fabSize="normal"
+            app:srcCompat="@android:drawable/ic_menu_camera"
+            android:id="@+id/cameraButtonMainScreen"
+            app:rippleColor="@android:color/white"
+            android:layout_above="@+id/potholesReported"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:text="Report Pothole"
+            android:layout_width="200dp"
+            android:layout_height="70dp"
+            android:background="@color/colorAccent"
+            android:id="@+id/button"
+            android:layout_marginTop="16dp"
+            android:layout_below="@+id/machineLearning"
+            android:layout_centerHorizontal="true" />
 
     </RelativeLayout>
 
