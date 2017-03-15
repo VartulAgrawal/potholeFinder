@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="vartul.makeithappen.potholefinder.MainScreen">
+    tools:context="vartul.makeithappen.potholefinder.MachineLearningActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -13,13 +13,6 @@
 
         <include layout="@layout/content_main_screen"
             android:id="@+id/include" />
-
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
 
         <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
@@ -49,12 +42,12 @@
             android:layout_marginBottom="24dp" />
 
         <Button
-            android:text="Switch to Machine Learning"
+            android:text="Switch to Z Threshold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/zThreshold"
             style="@style/Widget.AppCompat.Button"
-            android:background="@color/cast_expanded_controller_seek_bar_progress_background_tint_color"
+            android:background="@color/cast_expanded_controller_ad_container_white_stripe_color"
             android:layout_below="@+id/toolbar"
             android:layout_alignParentEnd="true"
             android:layout_alignParentStart="true" />

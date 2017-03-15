@@ -5,7 +5,7 @@ android {
     buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "vartul.makeithappen.potholefinder"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -28,6 +28,8 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/notice.txt'
         exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/dependencies.txt'
     }
 }
 
@@ -46,5 +48,5 @@ dependencies {
     compile 'org.nd4j:nd4j-native:0.7.2:android-x86'
     compile 'org.nd4j:nd4j-native:0.7.2:android-arm'
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.1'
-    testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:4.8.2'
 }

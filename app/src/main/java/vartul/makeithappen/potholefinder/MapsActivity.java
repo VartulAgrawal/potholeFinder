@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -43,9 +44,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        LatLng potholeLocation = new LatLng(getIntent().getDoubleExtra("Latitude", 0.0), getIntent().getDoubleExtra("Longitude", 0.0));
-        mMap.addMarker(new MarkerOptions().position(potholeLocation).title("Marker in Sydney"));
+        // Add a default marker and move the camera
+        LatLng potholeLocation = new LatLng(getIntent().getDoubleExtra("Latitude", 53.467778), getIntent().getDoubleExtra("Longitude", -2.233863));
+        mMap.addMarker(new MarkerOptions().position(potholeLocation));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(potholeLocation, 16));
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -55,6 +56,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             mMap.setMyLocationEnabled(true);
         }
+        Toast.makeText(MapsActivity.this, "Pothole Detected!", Toast.LENGTH_SHORT).show();
     }
 
 

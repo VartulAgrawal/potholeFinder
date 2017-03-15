@@ -1,6 +1,5 @@
 package vartul.makeithappen.potholefinder;
 
-import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -12,16 +11,16 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
-import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -36,11 +35,18 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
+import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
+import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.zip.ZipInputStream;
 
-public class MainScreen extends AppCompatActivity implements SensorEventListener, OnChartValueSelectedListener {
+public class MachineLearningActivity extends AppCompatActivity implements SensorEventListener, OnChartValueSelectedListener {
 
     // gps variables
     private Button locationButton;
@@ -65,12 +71,19 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
     private float count;
     private long currentTime;
 
+    private MultiLayerNetwork restoredNetwork;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_screen);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_machine_learning);
+
+        File neuralNetwork = new File(Environment.getExternalStorageDirectory(), "MyMultiLayerNetwork.zip");
+        try {
+            restoredNetwork = ModelSerializer.restoreMultiLayerNetwork(neuralNetwork);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         FloatingActionButton cameraButton = (FloatingActionButton) findViewById(R.id.cameraButtonMainScreen);
         cameraButton.setOnClickListener(new View.OnClickListener() {
@@ -136,12 +149,12 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
         mChart = (LineChart) findViewById(R.id.lineChart);
         initializeGraph();
 
-        Button changeToMachineLearning = (Button) findViewById(R.id.zThreshold);
-        changeToMachineLearning.setOnClickListener(new View.OnClickListener() {
+        Button changeToZThreshold = (Button) findViewById(R.id.zThreshold);
+        changeToZThreshold.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent machineLearning = new Intent(getApplicationContext(), MachineLearningActivity.class);
-                startActivity(machineLearning);
+                Intent zThreshold = new Intent(getApplicationContext(), MainScreen.class);
+                startActivity(zThreshold);
             }
         });
     }
@@ -207,10 +220,10 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
     }
 
     private void requestLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.INTERNET, Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+                requestPermissions(new String[]{android.Manifest.permission.INTERNET, android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
             }
         } else {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
@@ -261,6 +274,11 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
         return super.onOptionsItemSelected(item);
     }
 
+    private INDArray features = Nd4j.zeros(3);
+    private INDArray predicted = Nd4j.zeros(1);
+    private INDArray output = Nd4j.zeros(1);
+    private static final int numberOfOutputs = 1;
+
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
@@ -274,6 +292,20 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
+
+            features.putScalar(new int[] {0,0}, x);
+            features.putScalar(new int[] {0,1}, y);
+            features.putScalar(new int[] {0,2}, z);
+            output.putScalar(new int[] {0,0}, 1);
+
+            Evaluation evaluation = new Evaluation(numberOfOutputs);
+
+            // Load model
+            predicted = restoredNetwork.output(features, false);
+            System.out.println(predicted);
+            evaluation.eval(output,predicted);
+            double accuracy = evaluation.accuracy();
+            System.out.println(accuracy);
 
             /*addEntry(count, x, y, z);
             count+=0.1;*/
@@ -294,8 +326,9 @@ public class MainScreen extends AppCompatActivity implements SensorEventListener
                 if (deltaZ < NOISE) deltaZ = 0.0;
 
                 // Detect pothole based on Z threshold
-                if (deltaZ > 12.5) {
+                if (accuracy == 1 && deltaZ >13) {
                     goToMapScreen();
+                    accuracy = 0;
                 }
 
                 lastX = x;

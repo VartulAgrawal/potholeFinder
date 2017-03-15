@@ -73,12 +73,6 @@
                 android:text="@string/action_sign_in_short"
                 android:textStyle="bold" />
 
-            <Button
-                android:text="@string/action_register"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/button2" />
-
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
