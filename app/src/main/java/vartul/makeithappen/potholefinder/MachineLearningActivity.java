@@ -43,6 +43,7 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
+import org.apache.commons.io.FileUtils;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.json.JSONException;
@@ -52,6 +53,8 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -96,7 +99,18 @@ public class MachineLearningActivity extends AppCompatActivity implements Sensor
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_machine_learning);
 
+        //File neuralNetwork = new File(Environment.getExternalStorageDirectory(), "MyMultiLayerNetwork.zip");
+        URL fileURL = null;
+        try {
+            fileURL = new URL("http://potholefinder.5gbfree.com/MyMultiLayerNetwork.zip");
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
         File neuralNetwork = new File(Environment.getExternalStorageDirectory(), "MyMultiLayerNetwork.zip");
+
+        NeuralNet asyncNet = new NeuralNet(fileURL, neuralNetwork);
+        asyncNet.execute();
+
         try {
             restoredNetwork = ModelSerializer.restoreMultiLayerNetwork(neuralNetwork);
         } catch (IOException e) {
@@ -376,6 +390,28 @@ public class MachineLearningActivity extends AppCompatActivity implements Sensor
             //accVector.setText(vectorFormat.format(event.values[0] + event.values[1] + event.values[2]));
 
         }
+    }
+
+    public class NeuralNet extends AsyncTask<Void, Void, Void> {
+
+        private final URL url;
+        private final File file;
+
+        public NeuralNet(URL url, File file) {
+            this.url = url;
+            this.file = file;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                FileUtils.copyURLToFile(url, file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
     }
 
     private boolean success = true;

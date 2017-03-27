@@ -1,5 +1,6 @@
 package vartul.makeithappen.potholefinder;
 
+import org.apache.commons.io.FileUtils;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.junit.Test;
@@ -17,9 +18,10 @@ import java.net.URL;
 public class TestNeuralNet {
 
     @Test
-    public void testEvaluation() throws MalformedURLException {
-        URL fileURL = new URL("file:http://potholefinder.5gbfree.com/MyMultiLayerNetwork.zip");
-        File neuralNetwork = new File(fileURL.getFile());
+    public void testEvaluation() throws IOException {
+        URL fileURL = new URL("http://potholefinder.5gbfree.com/MyMultiLayerNetwork.zip");
+        File neuralNetwork = new File("MyMultiLayerNetwork.zip");
+        FileUtils.copyURLToFile(fileURL, neuralNetwork);
         MultiLayerNetwork restoredNetwork = null;
         try {
             restoredNetwork = ModelSerializer.restoreMultiLayerNetwork(neuralNetwork);
