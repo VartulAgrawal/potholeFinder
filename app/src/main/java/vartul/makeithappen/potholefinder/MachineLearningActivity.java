@@ -86,7 +86,7 @@ public class MachineLearningActivity extends AppCompatActivity implements Sensor
     private long currentTime;
 
     // database
-    private static final String URL= "http://potholefinder.5gbfree.com/potholes.php";
+    private static final String URL= "http://potholefinder.byethost11.com/potholes.php";
     private RequestQueue requestQueue;
     private StringRequest request;
 
@@ -102,7 +102,7 @@ public class MachineLearningActivity extends AppCompatActivity implements Sensor
         //File neuralNetwork = new File(Environment.getExternalStorageDirectory(), "MyMultiLayerNetwork.zip");
         URL fileURL = null;
         try {
-            fileURL = new URL("http://potholefinder.5gbfree.com/MyMultiLayerNetwork.zip");
+            fileURL = new URL("http://potholefinder.byethost11.com/MyMultiLayerNetwork.zip");
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }

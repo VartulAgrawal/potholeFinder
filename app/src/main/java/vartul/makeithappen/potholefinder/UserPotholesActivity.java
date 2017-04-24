@@ -37,7 +37,7 @@ public class UserPotholesActivity extends FragmentActivity implements OnMapReady
     private GoogleMap mMap;
 
     // database
-    private static final String URL= "http://potholefinder.5gbfree.com/potholes.php";
+    private static final String URL= "http://potholefinder.byethost11.com/potholes.php";
     private RequestQueue requestQueue;
     private StringRequest request;
 

@@ -60,7 +60,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int REQUEST_READ_CONTACTS = 0;
 
     // update the URL with the location where the script is hosted (Update IP accordingly)
-    private static final String URL= "http://potholefinder.5gbfree.com/user.php";
+    private static final String URL= "http://potholefinder.byethost11.com/user.php";
     private RequestQueue requestQueue;
     private StringRequest request;
 
